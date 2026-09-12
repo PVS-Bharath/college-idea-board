@@ -5,6 +5,8 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "./context/AuthContext";
+import Host from "./pages/Host";
+import GroupDashboard from "./pages/GroupDashboard";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -45,6 +47,26 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+
+      {/* Protected Host page */}
+      <Route
+        path="/host"
+        element={
+          <ProtectedRoute>
+            <Host />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected Group Dashboard */}
+      <Route
+        path="/group/:groupId"
+        element={
+          <ProtectedRoute>
+            <GroupDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected Ideas page */}
       <Route

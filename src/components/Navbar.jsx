@@ -32,6 +32,16 @@ export default function Navbar() {
         </Link>
 
         <div className="nav-links">
+         <Link
+            to="/Host"
+            className={`nav-link ${
+              isActive("/Host") ? "active" : ""
+            }`}
+          >
+            Host
+          </Link>
+
+        
           <Link
             to="/ideas"
             className={`nav-link ${

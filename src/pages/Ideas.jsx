@@ -53,6 +53,7 @@ export default function Ideas() {
           id
         )
       `)
+      .is("group_id", null)
       .order("created_at", {
         ascending: false,
       });
