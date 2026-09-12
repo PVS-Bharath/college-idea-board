@@ -41,31 +41,32 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<Home />}
-      />
+      {/* Public */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-      <Route
-        path="/login"
-        element={<Login />}
-      />
-
-      <Route
-        path="/signup"
-        element={<Signup />}
-      />
-
+      {/* Protected Ideas page */}
       <Route
         path="/ideas"
-        element={<Ideas />}
+        element={
+          <ProtectedRoute>
+            <Ideas />
+          </ProtectedRoute>
+        }
       />
 
+      {/* Protected Idea Details */}
       <Route
         path="/ideas/:id"
-        element={<IdeaDetails />}
+        element={
+          <ProtectedRoute>
+            <IdeaDetails />
+          </ProtectedRoute>
+        }
       />
 
+      {/* Protected Create */}
       <Route
         path="/create"
         element={
@@ -75,6 +76,7 @@ export default function App() {
         }
       />
 
+      {/* Protected Edit */}
       <Route
         path="/edit/:id"
         element={
@@ -84,6 +86,7 @@ export default function App() {
         }
       />
 
+      {/* Protected Profile */}
       <Route
         path="/profile"
         element={
@@ -93,13 +96,11 @@ export default function App() {
         }
       />
 
+      {/* Unknown route */}
       <Route
         path="*"
         element={
-          <Navigate
-            to="/"
-            replace
-          />
+          <Navigate to="/" replace />
         }
       />
     </Routes>
