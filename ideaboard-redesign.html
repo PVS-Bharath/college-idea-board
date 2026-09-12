@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IdeaBoard — Redesign Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fbfaf6;
+    --bg:#ffffff;
+    --bg-soft:#f5f3ed;
+    --ink:#171712;
+    --ink-soft:#66655c;
+    --ink-faint:#9b998c;
+    --blue:#2454ff;
+    --blue-deep:#101a3d;
+    --blue-tint:#eaf0ff;
+    --yellow:#ffcf46;
+    --yellow-tint:#fff3d6;
+    --line:#e6e2d6;
+    --danger:#c0392b;
+    --danger-tint:#fbeae7;
+    --radius-lg:26px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(23,23,18,.04), 0 10px 28px rgba(23,23,18,.07);
+    /* category system — each idea gets its own hue instead of one blue everywhere */
+    --cat-technology:#2454ff;
+    --cat-campus:#e0446b;
+    --cat-education:#7c5cfc;
+    --cat-events:#e69423;
+    --cat-environment:#3e8f5c;
+    --cat-other:#6b6a5e;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{ font-family:'Space Grotesk',sans-serif; letter-spacing:-0.02em; }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  img,svg{display:block;}
+  .container{max-width:1180px;margin:0 auto;padding:0 28px;}
+
+  /* ---------- NAV ---------- */
+  .nav-wrap{position:sticky;top:0;z-index:50;padding:18px 20px 0;background:linear-gradient(to bottom, rgba(255,255,255,.92), rgba(255,255,255,.75) 70%, transparent);backdrop-filter:blur(6px);}
+  .nav{
+    max-width:1180px;margin:0 auto;
+    display:flex;align-items:center;justify-content:space-between;
+    background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:10px 10px 10px 20px;
+    box-shadow:var(--shadow);
+  }
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;}
+  .brand-mark{width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:22px;height:22px;}
+  .nav-links{display:flex;align-items:center;gap:4px;}
+  .nav-link{padding:9px 16px;border-radius:999px;font-size:14.5px;font-weight:500;color:var(--ink-soft);transition:background .15s, color .15s;}
+  .nav-link:hover{background:var(--bg-soft);color:var(--ink);}
+  .nav-link.active{color:var(--ink);}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border-radius:999px;font-weight:600;font-size:14.5px;
+    border:1px solid transparent;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s, border-color .15s;
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--ink);color:#fff;padding:10px 20px;}
+  .btn-primary:hover{background:#000;box-shadow:0 6px 18px rgba(11,19,36,.22);}
+  .btn-blue{background:var(--blue);color:#fff;padding:10px 20px;}
+  .btn-blue:hover{background:#1b41d6;box-shadow:0 6px 18px rgba(36,84,255,.28);}
+  .btn-secondary{background:#fff;color:var(--ink);border:1px solid var(--line);padding:10px 20px;}
+  .btn-secondary:hover{border-color:#c9c7bd;background:var(--bg-soft);}
+  .btn-ghost{background:transparent;color:var(--ink-soft);padding:9px 14px;}
+  .btn-ghost:hover{color:var(--ink);}
+  .btn-danger-outline{background:#fff;color:var(--danger);border:1px solid #f2c6c6;padding:9px 16px;}
+  .btn-danger-outline:hover{background:var(--danger-tint);}
+  .btn-full{width:100%;}
+  .btn-sm{padding:7px 13px;font-size:13.5px;}
+
+  .page{display:none;animation:fadeIn .35s ease;}
+  .page.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);}}
+
+  /* ================= LANDING ================= */
+  .hero-section{
+    background:var(--paper);
+    padding:56px 0 100px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-grid{display:grid;grid-template-columns:1fr .92fr;gap:40px;align-items:center;margin-top:34px;position:relative;z-index:1;}
+  .eyebrow{
+    display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--ink-soft);
+    margin-bottom:22px;
+  }
+  .eyebrow svg{width:15px;height:15px;stroke:var(--blue);flex-shrink:0;}
+  .hero-title{font-size:58px;font-weight:600;line-height:1.02;margin:0 0 22px;color:var(--ink);}
+  .hero-title .light{font-weight:400;color:var(--ink-soft);display:block;}
+  .hero-sub{font-size:17.5px;color:var(--ink-soft);max-width:440px;margin:0 0 32px;}
+  .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:30px;}
+  .hero-actions .btn{padding:13px 24px;font-size:15px;}
+  .trust-line{font-size:14px;color:var(--ink-faint);font-weight:500;padding-top:18px;border-top:1px solid var(--line);display:inline-block;}
+
+  /* --- literal corkboard: scattered idea notes instead of a browser-chrome dashboard shot --- */
+  .board{
+    position:relative;
+    height:460px;
+    background:
+      radial-gradient(circle, #e3ded0 1px, transparent 1.4px) 0 0/16px 16px,
+      #f1ede1;
+    border-radius:30px 8px 30px 8px;
+    border:1px solid var(--line);
+  }
+  .note{
+    position:absolute;width:210px;background:#fff;border-radius:6px;
+    padding:14px 16px 16px;box-shadow:0 10px 22px rgba(23,23,18,.10);
+  }
+  .note::before{
+    content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+    width:12px;height:12px;border-radius:50%;background:var(--pin,var(--blue));
+    box-shadow:0 2px 3px rgba(0,0,0,.25);
+  }
+  .note-edge{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:6px 0 0 6px;background:var(--pin,var(--blue));}
+  .note-cat{font-size:9.5px;font-weight:700;letter-spacing:.02em;color:var(--pin,var(--blue));margin-bottom:6px;}
+  .note-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;line-height:1.25;margin-bottom:8px;}
+  .note-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-faint);}
+  .n1{top:26px;left:18px;transform:rotate(-5deg);--pin:var(--cat-campus);}
+  .n2{top:64px;left:250px;transform:rotate(4deg);--pin:var(--cat-technology);z-index:2;}
+  .n3{top:270px;left:36px;transform:rotate(3deg);--pin:var(--cat-education);}
+  .n4{top:238px;left:242px;transform:rotate(-3deg);--pin:var(--cat-events);z-index:2;}
+
+  /* ---------- HOW IT WORKS ---------- */
+  .section{padding:84px 0;}
+  .section-head{max-width:560px;margin-bottom:48px;}
+  .section-head h2{font-size:32px;font-weight:700;margin:0 0 10px;}
+  .section-head p{color:var(--ink-soft);font-size:16px;margin:0;}
+  .steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line);}
+  .step-card{
+    position:relative;padding:34px 30px;border-right:1px solid var(--line);
+  }
+  .step-card:first-child{padding-left:0;}
+  .step-card:last-child{border-right:none;}
+  .step-num{
+    font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:600;color:var(--line);
+    line-height:1;margin-bottom:20px;
+  }
+  .step-icon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .step-icon svg{width:22px;height:22px;stroke:var(--blue);}
+  .step-card h3{font-size:18px;margin:0 0 8px;font-weight:600;}
+  .step-card p{margin:0;color:var(--ink-soft);font-size:14.5px;max-width:230px;}
+
+  /* ---------- FINAL CTA ---------- */
+  .cta-band{
+    background:var(--paper);
+    border:1.5px solid var(--ink);
+    border-radius:8px 40px 8px 40px;
+    margin:0 auto 90px;
+    max-width:1180px;
+    padding:64px 56px;
+    position:relative;
+    overflow:hidden;
+  }
+  .cta-band::after{
+    /* folded paper corner — ties the CTA back to the idea-note motif instead of decorating with a gradient blob */
+    content:"";position:absolute;top:-1px;right:-1px;width:0;height:0;
+    border-style:solid;border-width:0 46px 46px 0;
+    border-color:transparent #fff transparent transparent;
+    filter:drop-shadow(-2px 2px 3px rgba(23,23,18,.12));
+  }
+  .cta-watermark{
+    position:absolute;right:-40px;bottom:-60px;width:280px;height:280px;opacity:.5;pointer-events:none;
+  }
+  .cta-watermark svg{width:100%;height:100%;stroke:var(--blue-tint);}
+  .cta-band .cta-copy{position:relative;max-width:480px;}
+  .cta-band h2{color:var(--ink);font-size:36px;font-weight:600;line-height:1.08;margin:0 0 14px;}
+  .cta-band h2 .light{font-weight:400;color:var(--ink-soft);display:block;}
+  .cta-band p{color:var(--ink-soft);font-size:16px;margin:0 0 30px;}
+  .cta-band .btn{padding:14px 28px;font-size:15px;}
+  .cta-band .cta-note{margin:14px 0 0;color:var(--ink-faint);font-size:13px;}
+
+  footer{border-top:1px solid var(--line);padding:30px 0;color:var(--ink-faint);font-size:13.5px;display:flex;justify-content:space-between;}
+
+  /* ================= IDEAS PAGE ================= */
+  .page-head{padding:44px 0 8px;}
+  .page-head h1{font-size:32px;margin:0 0 8px;}
+  .page-head p{color:var(--ink-soft);margin:0;font-size:15.5px;}
+  .toolbar{
+    display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    margin:26px 0 22px;padding:14px;background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--radius-md);
+  }
+  .search-box{
+    flex:1;min-width:200px;display:flex;align-items:center;gap:9px;
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;
+  }
+  .search-box input{border:none;outline:none;font-size:14.5px;width:100%;font-family:inherit;background:transparent;}
+  .search-box svg{width:16px;height:16px;stroke:var(--ink-faint);flex-shrink:0;}
+  .filter-chips{display:flex;gap:7px;flex-wrap:wrap;}
+  .chip{
+    font-size:13.5px;font-weight:500;padding:8px 15px;border-radius:999px;
+    background:#fff;border:1px solid var(--line);color:var(--ink-soft);
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .chip:hover{border-color:#c9c7bd;}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .sort-select{
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:13.5px;color:var(--ink-soft);font-family:inherit;
+  }
+
+  .idea-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding-bottom:80px;}
+  .idea-card{
+    background:#fff;border:1px solid var(--line);border-left:3px solid var(--cat, var(--blue));border-radius:4px 10px 10px 4px;
+    padding:22px;display:flex;flex-direction:column;gap:12px;
+    transition:transform .14s ease, border-color .14s ease;
+    cursor:pointer;
+  }
+  .idea-card:hover{transform:translateY(-2px);border-color:var(--cat, var(--blue));}
+  .badge{display:inline-block;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.01em;color:var(--cat, var(--blue));background:transparent;padding:0;}
+  .idea-card h3{margin:0;font-size:17.5px;font-weight:600;line-height:1.3;}
+  .idea-card .desc{margin:0;color:var(--ink-soft);font-size:14px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .idea-meta{font-size:12.5px;color:var(--ink-faint);}
+  .idea-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:12px;border-top:1px solid var(--line);}
+  .idea-stats{display:flex;gap:14px;font-size:13px;color:var(--ink-soft);}
+  .idea-stats span{display:inline-flex;align-items:center;gap:5px;}
+  .idea-stats svg{width:14px;height:14px;}
+  .vote-btn{
+    display:inline-flex;align-items:center;gap:6px;background:var(--bg-soft);border:1px solid var(--line);
+    border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--ink);transition:all .15s;
+  }
+  .vote-btn:hover{border-color:var(--blue);color:var(--blue);}
+  .vote-btn.voted{background:var(--blue-tint);border-color:var(--blue);color:var(--blue);}
+  .vote-btn svg{width:13px;height:13px;}
+
+  .skeleton-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);padding:22px;}
+  .sk-line{height:11px;border-radius:6px;background:linear-gradient(90deg,#eeece5 25%,#f6f5f0 37%,#eeece5 63%);background-size:400% 100%;animation:shimmer 1.4s infinite;margin-bottom:10px;}
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:0 0;}}
+
+  .empty-state, .error-state{
+    text-align:center;padding:80px 20px;border:1px dashed var(--line);border-radius:var(--radius-lg);background:var(--bg-soft);
+  }
+  .empty-state h3, .error-state h3{font-size:20px;margin:0 0 8px;}
+  .empty-state p, .error-state p{color:var(--ink-soft);margin:0 0 22px;font-size:14.5px;}
+
+  /* ================= CREATE / FORM ================= */
+  .form-wrap{max-width:600px;margin:0 auto;padding:56px 0 100px;}
+  .form-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);padding:36px;box-shadow:var(--shadow);}
+  .form-title{font-size:27px;margin:0 0 8px;}
+  .form-sub{color:var(--ink-soft);font-size:14.5px;margin:0 0 30px;}
+  .field{margin-bottom:20px;}
+  .field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:7px;color:var(--ink);}
+  .field input, .field textarea, .field select{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:14.5px;
+    font-family:inherit;outline:none;transition:border-color .15s, box-shadow .15s;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);}
+  .field textarea{resize:vertical;min-height:120px;}
+  .field-foot{display:flex;justify-content:space-between;margin-top:6px;font-size:12.5px;color:var(--ink-faint);}
+  .field-error{color:var(--danger);font-size:12.5px;margin-top:6px;display:none;}
+  .field.invalid input, .field.invalid textarea{border-color:var(--danger);}
+  .field.invalid .field-error{display:block;}
+  .form-actions{display:flex;gap:10px;margin-top:28px;}
+
+  /* ================= IDEA DETAIL ================= */
+  .detail-wrap{max-width:760px;margin:0 auto;padding:40px 0 100px;}
+  .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:14px;font-weight:500;margin-bottom:24px;}
+  .back-link:hover{color:var(--ink);}
+  .back-link svg{width:15px;height:15px;}
+  .detail-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);padding:36px;}
+  .detail-title{font-size:29px;margin:14px 0 12px;}
+  .detail-meta-row{display:flex;align-items:center;gap:10px;color:var(--ink-faint);font-size:13.5px;margin-bottom:22px;}
+  .detail-body{font-size:15.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:28px;}
+  .detail-actions{display:flex;gap:10px;flex-wrap:wrap;padding-bottom:26px;border-bottom:1px solid var(--line);margin-bottom:26px;}
+  .owner-actions{display:flex;gap:10px;margin-left:auto;}
+
+  .discussion h3{font-size:19px;margin:0 0 18px;}
+  .comment-box{display:flex;gap:10px;margin-bottom:26px;}
+  .avatar{
+    width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:600;font-size:14px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .comment-input-wrap{flex:1;}
+  .comment-input-wrap textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;font-family:inherit;font-size:14.5px;resize:none;min-height:56px;outline:none;}
+  .comment-input-wrap textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint);}
+  .comment-actions{display:flex;justify-content:flex-end;margin-top:8px;}
+  .comment-item{display:flex;gap:10px;margin-bottom:20px;}
+  .comment-content{flex:1;background:var(--bg-soft);border-radius:12px;padding:12px 16px;}
+  .comment-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .comment-name{font-weight:600;font-size:14px;}
+  .comment-time{font-size:12px;color:var(--ink-faint);}
+  .comment-text{font-size:14.5px;color:var(--ink-soft);margin:0;}
+  .comment-owner-actions{display:flex;gap:12px;margin-top:6px;}
+  .comment-owner-actions button{background:none;border:none;font-size:12.5px;color:var(--ink-faint);font-weight:600;padding:0;}
+  .comment-owner-actions button:hover{color:var(--ink);}
+
+  /* ================= AUTH PAGES ================= */
+  .auth-wrap{min-height:calc(100vh - 90px);display:flex;align-items:center;justify-content:center;padding:60px 20px;background:linear-gradient(160deg, var(--yellow-tint) 0%, #fff 45%, var(--blue-tint) 100%);}
+  .auth-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:40px;width:100%;max-width:420px;}
+  .auth-card h1{font-size:26px;margin:0 0 8px;}
+  .auth-card .form-sub{margin-bottom:26px;}
+  .auth-switch{text-align:center;margin-top:22px;font-size:14px;color:var(--ink-soft);}
+  .auth-switch a{color:var(--blue);font-weight:600;}
+  .auth-error{background:var(--danger-tint);color:var(--danger);font-size:13.5px;padding:11px 14px;border-radius:10px;margin-bottom:18px;display:none;}
+
+  /* ================= PROFILE ================= */
+  .profile-header{display:flex;align-items:center;gap:18px;padding:44px 0 30px;border-bottom:1px solid var(--line);margin-bottom:34px;}
+  .profile-avatar{width:64px;height:64px;border-radius:50%;background:var(--blue);color:#fff;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .profile-name{font-size:22px;margin:0 0 3px;}
+  .profile-sub{color:var(--ink-soft);font-size:14px;margin:0;}
+  .profile-section h2{font-size:19px;margin:0 0 18px;}
+  .my-idea-row{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);padding:16px 20px;margin-bottom:12px;
+  }
+  .my-idea-info h4{margin:0 0 5px;font-size:15.5px;}
+  .my-idea-info .idea-meta{margin:0;}
+  .my-idea-actions{display:flex;gap:8px;flex-shrink:0;}
+
+  /* ---------- Toast for mockup interactions ---------- */
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:13.5px;font-weight:500;
+    opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* dev-only preview switcher (not part of real app) */
+  .preview-bar{
+    position:fixed;top:0;left:0;right:0;z-index:100;background:#0b1324;color:#fff;
+    display:flex;gap:4px;padding:8px 14px;overflow-x:auto;font-size:12.5px;font-family:'Inter',sans-serif;
+  }
+  .preview-bar button{background:transparent;border:1px solid rgba(255,255,255,.15);color:#cbd3e8;padding:6px 12px;border-radius:8px;white-space:nowrap;font-weight:500;}
+  .preview-bar button.on{background:#fff;color:#0b1324;border-color:#fff;}
+  .app-shell{padding-top:46px;}
+
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-title{font-size:38px;}
+    .steps-grid{grid-template-columns:1fr;border-top:none;}
+    .step-card{border-right:none;border-top:1px solid var(--line);padding:26px 0;}
+    .step-card:first-child{border-top:none;}
+    .idea-grid{grid-template-columns:repeat(2,1fr);}
+    /* corkboard collapses to a plain grid — the pinned layout only works at hero width */
+    .board{height:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px;background:var(--bg-soft);border-radius:20px;}
+    .note{position:static;width:100%;transform:none!important;box-shadow:none;border:1px solid var(--line);}
+    .note::before{display:none;}
+  }
+  @media (max-width:600px){
+    .container{padding:0 18px;}
+    .nav-links .nav-link{display:none;}
+    .nav-links .nav-link.always{display:inline-flex;}
+    .idea-grid{grid-template-columns:1fr;}
+    .hero-title{font-size:32px;}
+    .hero-actions .btn, .hero-actions{width:100%;}
+    .hero-actions{flex-direction:column;}
+    .toolbar{flex-direction:column;align-items:stretch;}
+    .cta-band{border-radius:16px;padding:44px 26px;margin-bottom:60px;}
+    .cta-band h2{font-size:28px;}
+    .cta-watermark{width:180px;height:180px;right:-30px;bottom:-40px;}
+    .form-card, .detail-card, .auth-card{padding:24px;}
+    .owner-actions{margin-left:0;width:100%;}
+    .detail-actions{flex-direction:column;}
+    .my-idea-row{flex-direction:column;align-items:flex-start;}
+    .board{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-bar">
+  <button data-goto="landing" class="on">Landing</button>
+  <button data-goto="ideas">Ideas</button>
+  <button data-goto="detail">Idea Detail</button>
+  <button data-goto="create">Create Idea</button>
+  <button data-goto="login">Log In</button>
+  <button data-goto="signup">Sign Up</button>
+  <button data-goto="profile">Profile</button>
+  <button data-goto="ideas-empty">Ideas (empty)</button>
+  <button data-goto="ideas-loading">Ideas (loading)</button>
+  <button data-goto="ideas-error">Ideas (error)</button>
+</div>
+
+<div class="app-shell">
+
+<div class="nav-wrap" id="navWrap"></div>
+
+<!-- ================= LANDING PAGE ================= -->
+<section class="page active" id="page-landing">
+  <div class="hero-section">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 13.6 6.9 17.2l1.9-5.8L4 7.8h6.1z"/></svg>Built for students</span>
+          <h1 class="hero-title">Turn student ideas<span class="light">into real change.</span></h1>
+          <p class="hero-sub">A collaborative space where students can share ideas, start conversations, and vote for the changes they want to see on campus.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" data-goto="signup">Share Your Idea →</button>
+            <button class="btn btn-secondary" data-goto="ideas">Explore Ideas</button>
+          </div>
+          <p class="trust-line">Share ideas. Get feedback. Make an impact.</p>
+        </div>
+        <div class="board">
+          <div class="note n1"><span class="note-edge"></span><div class="note-cat">CAMPUS</div><div class="note-title">Smart Campus Navigation</div><div class="note-foot"><span>↑ 24</span><span>💬 8</span></div></div>
+          <div class="note n2"><span class="note-edge"></span><div class="note-cat">TECHNOLOGY</div><div class="note-title">Offline Class Notes App</div><div class="note-foot"><span>↑ 31</span><span>💬 11</span></div></div>
+          <div class="note n3"><span class="note-edge"></span><div class="note-cat">EDUCATION</div><div class="note-title">Free Textbook Exchange</div><div class="note-foot"><span>↑ 19</span><span>💬 6</span></div></div>
+          <div class="note n4"><span class="note-edge"></span><div class="note-cat">EVENTS</div><div class="note-title">Unified Events Calendar</div><div class="note-foot"><span>↑ 22</span><span>💬 9</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container section">
+    <div class="section-head">
+      <h2>Ideas grow when students work together.</h2>
+      <p>A simple loop: post, discuss, and vote — built to help good ideas rise to the top.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg></div>
+        <h3>Share</h3>
+        <p>Post your idea with a title, category and clear description.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>Discuss</h3>
+        <p>Get feedback and continue the conversation with other students.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+        <h3>Vote</h3>
+        <p>Upvote ideas you believe can make a difference on campus.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-band">
+    <div class="cta-watermark">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z"/></svg>
+    </div>
+    <div class="cta-copy">
+      <h2>Have an idea<span class="light">worth sharing?</span></h2>
+      <p>Start the conversation with your college community.</p>
+      <button class="btn btn-blue" data-goto="signup">Create an Idea →</button>
+      <p class="cta-note">Free to join with your college email.</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <footer>
+      <span>© 2026 IdeaBoard</span>
+      <span>Made for students, by students</span>
+    </footer>
+  </div>
+</section>
+
+<!-- ================= IDEAS PAGE ================= -->
+<section class="page" id="page-ideas">
+  <div class="container">
+    <div class="page-head">
+      <h1>Discover Ideas</h1>
+      <p>Explore what students in your community are thinking about.</p>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search ideas...">
+      </div>
+      <select class="sort-select">
+        <option>Newest</option>
+        <option>Most Upvoted</option>
+      </select>
+      <button class="btn btn-primary" data-goto="create">+ Create Idea</button>
+    </div>
+
+    <div class="filter-chips" style="margin-bottom:22px;">
+      <span class="chip on">All</span>
+      <span class="chip">Technology</span>
+      <span class="chip">Campus</span>
+      <span class="chip">Education</span>
+      <span class="chip">Events</span>
+      <span class="chip">Environment</span>
+      <span class="chip">Other</span>
+    </div>
+
+    <div class="idea-grid" id="ideaGrid">
+      <!-- cards injected -->
+    </div>
+  </div>
+</section>
+
+<!-- IDEAS EMPTY STATE -->
+<section class="page" id="page-ideas-empty">
+  <div class="container">
+    <div class="page-head"><h1>Discover Ideas</h1><p>Explore what students in your community are thinking about.</p></div>
+    <div class="toolbar">
+      <div class="search-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input placeholder="Search ideas..."></div>
+      <button class="btn btn-primary" data-goto="create">+ Create Idea</button>
+    </div>
+    <div class="empty-state" style="margin-top:30px;">
+      <h3>Nothing here yet.</h3>
+      <p>Be the first student to share an idea.</p>
+      <button class="btn btn-blue" data-goto="create">Create the First Idea →</button>
+    </div>
+  </div>
+</section>
+
+<!-- IDEAS LOADING STATE -->
+<section class="page" id="page-ideas-loading">
+  <div class="container">
+    <div class="page-head"><h1>Discover Ideas</h1><p>Explore what students in your community are thinking about.</p></div>
+    <div class="idea-grid" style="margin-top:26px;">
+      <div class="skeleton-card"><div class="sk-line" style="width:30%;"></div><div class="sk-line" style="width:80%;height:16px;"></div><div class="sk-line" style="width:95%;"></div><div class="sk-line" style="width:60%;"></div></div>
+      <div class="skeleton-card"><div class="sk-line" style="width:30%;"></div><div class="sk-line" style="width:80%;height:16px;"></div><div class="sk-line" style="width:95%;"></div><div class="sk-line" style="width:60%;"></div></div>
+      <div class="skeleton-card"><div class="sk-line" style="width:30%;"></div><div class="sk-line" style="width:80%;height:16px;"></div><div class="sk-line" style="width:95%;"></div><div class="sk-line" style="width:60%;"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- IDEAS ERROR STATE -->
+<section class="page" id="page-ideas-error">
+  <div class="container">
+    <div class="page-head"><h1>Discover Ideas</h1><p>Explore what students in your community are thinking about.</p></div>
+    <div class="error-state" style="margin-top:30px;">
+      <h3>Unable to load ideas.</h3>
+      <p>Please check your connection and try again.</p>
+      <button class="btn btn-primary" onclick="location.reload()">Try Again</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CREATE IDEA ================= -->
+<section class="page" id="page-create">
+  <div class="container">
+    <div class="form-wrap">
+      <div class="form-card">
+        <h1 class="form-title">Share your idea</h1>
+        <p class="form-sub">Give your idea a clear description so other students can understand it.</p>
+        <form onsubmit="return false;">
+          <div class="field">
+            <label>Idea Title</label>
+            <input type="text" placeholder="e.g. Smart campus navigation">
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <select>
+              <option>Technology</option>
+              <option>Campus</option>
+              <option>Education</option>
+              <option>Events</option>
+              <option>Environment</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea placeholder="Explain your idea..." oninput="document.getElementById('charCount').textContent = this.value.length"></textarea>
+            <div class="field-foot"><span id="charCount">0</span><span>characters</span></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" data-goto="ideas">Cancel</button>
+            <button class="btn btn-primary" style="flex:1;" onclick="showToast('Idea published!')">Publish Idea</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= IDEA DETAIL ================= -->
+<section class="page" id="page-detail">
+  <div class="container">
+    <div class="detail-wrap">
+      <a class="back-link" data-goto="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back to Ideas</a>
+      <div class="detail-card" style="--cat:var(--cat-campus)">
+        <span class="badge">CAMPUS</span>
+        <h1 class="detail-title">Smart Campus Navigation</h1>
+        <div class="detail-meta-row">
+          <span>Posted by Bharath</span><span>·</span><span>2 hours ago</span>
+        </div>
+        <p class="detail-body">A simple way for students to find classrooms, labs and important campus locations. The app would show real-time directions between buildings, mark accessible routes, and highlight nearby facilities like printers, water fountains and study rooms — all without needing to ask around every semester.</p>
+        <div class="detail-actions">
+          <button class="vote-btn" id="voteBtn" onclick="toggleVote(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            <span>Upvote · 24</span>
+          </button>
+          <div class="owner-actions">
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Edit form would open here')">Edit Idea</button>
+            <button class="btn btn-danger-outline btn-sm" onclick="confirmDelete()">Delete Idea</button>
+          </div>
+        </div>
+
+        <div class="discussion">
+          <h3>Discussion</h3>
+          <div class="comment-box">
+            <div class="avatar">Y</div>
+            <div class="comment-input-wrap">
+              <textarea placeholder="Share your thoughts..."></textarea>
+              <div class="comment-actions"><button class="btn btn-primary btn-sm" onclick="showToast('Comment posted!')">Post Comment</button></div>
+            </div>
+          </div>
+
+          <div class="comment-item">
+            <div class="avatar">A</div>
+            <div class="comment-content">
+              <div class="comment-head"><span class="comment-name">Aditi Rao</span><span class="comment-time">1 hour ago</span></div>
+              <p class="comment-text">Love this — could it also integrate with the shuttle schedule?</p>
+            </div>
+          </div>
+          <div class="comment-item">
+            <div class="avatar">Y</div>
+            <div class="comment-content">
+              <div class="comment-head"><span class="comment-name">You</span><span class="comment-time">40 minutes ago</span></div>
+              <p class="comment-text">Good point, adding that to the proposal.</p>
+              <div class="comment-owner-actions"><button onclick="showToast('Edit comment')">Edit</button><button onclick="showToast('Comment deleted')" style="color:var(--danger);">Delete</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LOGIN ================= -->
+<section class="page" id="page-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="form-sub">Continue sharing ideas with your community.</p>
+      <div class="auth-error" id="loginError">Incorrect email or password. Please try again.</div>
+      <form onsubmit="return false;">
+        <div class="field"><label>Email</label><input type="email" placeholder="you@college.edu"></div>
+        <div class="field" style="margin-bottom:8px;"><label>Password</label><input type="password" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-full" style="margin-top:14px;padding:12px;" onclick="showToast('Logging in...'); setTimeout(()=>goto('ideas'),500)">Log In</button>
+      </form>
+      <p class="auth-switch">Don't have an account? <a data-goto="signup">Sign Up</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SIGNUP ================= -->
+<section class="page" id="page-signup">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Join IdeaBoard</h1>
+      <p class="form-sub">Create your account and start sharing ideas.</p>
+      <form onsubmit="return false;">
+        <div class="field"><label>Full Name</label><input type="text" placeholder="Your full name"></div>
+        <div class="field"><label>Username</label><input type="text" placeholder="Choose a username"></div>
+        <div class="field"><label>Email</label><input type="email" placeholder="you@college.edu"></div>
+        <div class="field" style="margin-bottom:8px;"><label>Password</label><input type="password" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-full" style="margin-top:14px;padding:12px;" onclick="showToast('Account created!'); setTimeout(()=>goto('ideas'),500)">Create Account</button>
+      </form>
+      <p class="auth-switch">Already have an account? <a data-goto="login">Log In</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROFILE ================= -->
+<section class="page" id="page-profile">
+  <div class="container">
+    <div class="profile-header">
+      <div class="profile-avatar">Y</div>
+      <div>
+        <h1 class="profile-name">You</h1>
+        <p class="profile-sub">@your_username · you@college.edu</p>
+      </div>
+    </div>
+    <div class="profile-section">
+      <h2>My Ideas</h2>
+      <div class="my-idea-row">
+        <div class="my-idea-info">
+          <h4>Smart Campus Navigation</h4>
+          <p class="idea-meta">Campus · 24 votes · 8 comments · 2 hours ago</p>
+        </div>
+        <div class="my-idea-actions">
+          <button class="btn btn-secondary btn-sm" data-goto="detail">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Edit form would open')">Edit</button>
+          <button class="btn btn-danger-outline btn-sm" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+      <div class="my-idea-row">
+        <div class="my-idea-info">
+          <h4>Free Textbook Exchange</h4>
+          <p class="idea-meta">Education · 12 votes · 3 comments · 1 day ago</p>
+        </div>
+        <div class="my-idea-actions">
+          <button class="btn btn-secondary btn-sm" data-goto="detail">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Edit form would open')">Edit</button>
+          <button class="btn btn-danger-outline btn-sm" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /app-shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const NAV_LOGGED_OUT = `
+    <div class="nav container">
+      <a class="brand" data-goto="landing">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v14M6 21h12"/></svg></span>
+        IdeaBoard
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" data-goto="ideas">Ideas</a>
+        <a class="nav-link" data-goto="login">Log In</a>
+        <button class="btn btn-primary btn-sm" data-goto="signup">Sign Up</button>
+      </div>
+    </div>`;
+  const NAV_LOGGED_IN = `
+    <div class="nav container">
+      <a class="brand" data-goto="landing">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v14M6 21h12"/></svg></span>
+        IdeaBoard
+      </a>
+      <div class="nav-links">
+        <a class="nav-link" data-goto="ideas">Ideas</a>
+        <a class="nav-link" data-goto="create">Create Idea</a>
+        <a class="nav-link" data-goto="profile">Profile</a>
+        <button class="btn btn-secondary btn-sm" onclick="doLogout()">Log Out</button>
+      </div>
+    </div>`;
+
+  const IDEAS = [
+    {cat:"CAMPUS", title:"Smart Campus Navigation", desc:"A simple way for students to find classrooms, labs and important campus locations.", author:"Bharath", time:"2 hours ago", votes:24, comments:8},
+    {cat:"EDUCATION", title:"Free Textbook Exchange", desc:"A platform where students can swap or lend textbooks each semester instead of buying new.", author:"Meera", time:"5 hours ago", votes:19, comments:6},
+    {cat:"TECHNOLOGY", title:"Offline Class Notes App", desc:"Sync lecture notes locally so students without reliable wifi never miss updates.", author:"Rohan", time:"1 day ago", votes:31, comments:11},
+    {cat:"ENVIRONMENT", title:"Campus Composting Bins", desc:"Add composting stations near the cafeteria to cut down on food waste going to landfill.", author:"Isha", time:"1 day ago", votes:15, comments:4},
+    {cat:"EVENTS", title:"Unified Events Calendar", desc:"One shared calendar for every club and department so events stop overlapping.", author:"Devika", time:"2 days ago", votes:22, comments:9},
+    {cat:"OTHER", title:"Peer Tutoring Marketplace", desc:"Match students who need help with peers who've already aced that exact course.", author:"Arjun", time:"3 days ago", votes:27, comments:7},
+  ];
+
+  const CAT_COLORS = {
+    CAMPUS:'var(--cat-campus)', TECHNOLOGY:'var(--cat-technology)', EDUCATION:'var(--cat-education)',
+    EVENTS:'var(--cat-events)', ENVIRONMENT:'var(--cat-environment)', OTHER:'var(--cat-other)'
+  };
+  function renderIdeas(){
+    const grid = document.getElementById('ideaGrid');
+    grid.innerHTML = IDEAS.map(i => `
+      <div class="idea-card" style="--cat:${CAT_COLORS[i.cat] || 'var(--blue)'}" onclick="goto('detail')">
+        <span class="badge">${i.cat}</span>
+        <h3>${i.title}</h3>
+        <p class="desc">${i.desc}</p>
+        <span class="idea-meta">Posted by ${i.author} · ${i.time}</span>
+        <div class="idea-foot">
+          <div class="idea-stats">
+            <span>💬 ${i.comments}</span>
+          </div>
+          <button class="vote-btn" onclick="event.stopPropagation(); toggleVote(this, ${i.votes})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            <span>${i.votes}</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+  renderIdeas();
+
+  let loggedIn = false;
+  function renderNav(){
+    document.getElementById('navWrap').innerHTML = loggedIn ? NAV_LOGGED_IN : NAV_LOGGED_OUT;
+  }
+  renderNav();
+
+  function goto(name){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + name);
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.preview-bar button').forEach(b => b.classList.toggle('on', b.dataset.goto === name));
+    window.scrollTo({top:0, behavior:'instant'});
+    if(name === 'signup' || name === 'login'){
+      // simulate simple auth after visiting these — handled in button handlers instead
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-goto]');
+    if(el){ goto(el.dataset.goto); }
+  });
+
+  function doLogout(){
+    loggedIn = false; renderNav(); showToast('Logged out'); goto('landing');
+  }
+
+  // simulate login state after using login/signup CTA in nav flows
+  document.querySelectorAll('[onclick*="goto(\'ideas\')"]').forEach(()=>{});
+  const origGoto = goto;
+  window.goto = function(name){
+    if(name === 'ideas' && (document.getElementById('page-login').classList.contains('active') || document.getElementById('page-signup').classList.contains('active'))){
+      loggedIn = true; renderNav();
+    }
+    origGoto(name);
+  }
+
+  function toggleVote(btn, count){
+    const voted = btn.classList.toggle('voted');
+    const span = btn.querySelector('span');
+    if(btn.id === 'voteBtn'){
+      span.textContent = voted ? '✓ Voted · 25' : 'Upvote · 24';
+    } else {
+      span.textContent = voted ? count + 1 : count;
+    }
+  }
+
+  function confirmDelete(){
+    if(confirm('Delete this idea? This cannot be undone.')){
+      showToast('Idea deleted');
+      goto('ideas');
+    }
+  }
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+</script>
+
+</body>
+</html>
