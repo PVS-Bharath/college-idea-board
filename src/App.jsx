@@ -1,4 +1,9 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
+
 import { useAuth } from "./context/AuthContext";
 
 import Home from "./pages/Home";
@@ -15,14 +20,19 @@ function ProtectedRoute({ children }) {
   if (loading) {
     return (
       <div className="app-loading">
-        <div className="spinner"></div>
+        <div className="spinner" />
         <p>Loading...</p>
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
   }
 
   return children;
@@ -31,18 +41,42 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route
+        path="/"
+        element={<Home />}
+      />
 
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
 
-      <Route path="/signup" element={<Signup />} />
+      <Route
+        path="/signup"
+        element={<Signup />}
+      />
 
-      <Route path="/ideas" element={<Ideas />} />
+      <Route
+        path="/ideas"
+        element={<Ideas />}
+      />
 
-      <Route path="/ideas/:id" element={<IdeaDetails />} />
+      <Route
+        path="/ideas/:id"
+        element={<IdeaDetails />}
+      />
 
       <Route
         path="/create"
+        element={
+          <ProtectedRoute>
+            <CreateIdea />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/edit/:id"
         element={
           <ProtectedRoute>
             <CreateIdea />
@@ -59,7 +93,15 @@ export default function App() {
         }
       />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
+      />
     </Routes>
   );
 }

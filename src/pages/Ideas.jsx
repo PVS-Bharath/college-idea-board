@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import IdeaCard from "../components/IdeaCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
+
+import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
 const categories = [
@@ -15,23 +19,25 @@ const categories = [
 ];
 
 export default function Ideas() {
+  const { user } = useAuth();
+
   const [ideas, setIdeas] = useState([]);
-  const [votes, setVotes] = useState({});
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [sort, setSort] = useState("Newest");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchIdeas();
-  }, []);
+  const [votedIdeas, setVotedIdeas] = useState(
+    new Set()
+  );
 
   const fetchIdeas = async () => {
     setLoading(true);
     setError("");
 
-    const { data, error: fetchError } = await supabase
+    const { data, error } = await supabase
       .from("ideas")
       .select(`
         *,
@@ -40,6 +46,10 @@ export default function Ideas() {
           username
         ),
         votes (
+          id,
+          user_id
+        ),
+        comments (
           id
         )
       `)
@@ -47,64 +57,189 @@ export default function Ideas() {
         ascending: false,
       });
 
-    if (fetchError) {
-      setError(fetchError.message);
+    if (error) {
+      setError(error.message);
+      setIdeas([]);
       setLoading(false);
       return;
     }
 
-    const voteMap = {};
-
-    data.forEach((idea) => {
-      voteMap[idea.id] = idea.votes?.length || 0;
-    });
-
     setIdeas(data || []);
-    setVotes(voteMap);
+
+    if (user) {
+      const voted = new Set();
+
+      (data || []).forEach((idea) => {
+        if (
+          idea.votes?.some(
+            (vote) => vote.user_id === user.id
+          )
+        ) {
+          voted.add(idea.id);
+        }
+      });
+
+      setVotedIdeas(voted);
+    }
+
     setLoading(false);
   };
 
-  const filteredIdeas = ideas.filter((idea) => {
-    const query = search.toLowerCase().trim();
+  useEffect(() => {
+    fetchIdeas();
+  }, [user]);
 
-    const matchesSearch =
-      !query ||
-      idea.title.toLowerCase().includes(query) ||
-      idea.description.toLowerCase().includes(query);
+  const filteredIdeas = useMemo(() => {
+    let result = [...ideas];
 
-    const matchesCategory =
-      category === "All" ||
-      idea.category === category;
+    if (search.trim()) {
+      const query = search.toLowerCase();
 
-    return matchesSearch && matchesCategory;
-  });
+      result = result.filter(
+        (idea) =>
+          idea.title
+            ?.toLowerCase()
+            .includes(query) ||
+          idea.description
+            ?.toLowerCase()
+            .includes(query) ||
+          idea.category
+            ?.toLowerCase()
+            .includes(query)
+      );
+    }
+
+    if (category !== "All") {
+      result = result.filter(
+        (idea) => idea.category === category
+      );
+    }
+
+    if (sort === "Most Upvoted") {
+      result.sort(
+        (a, b) =>
+          (b.votes?.length || 0) -
+          (a.votes?.length || 0)
+      );
+    } else {
+      result.sort(
+        (a, b) =>
+          new Date(b.created_at) -
+          new Date(a.created_at)
+      );
+    }
+
+    return result;
+  }, [ideas, search, category, sort]);
+
+  const handleVote = async (ideaId) => {
+    if (!user) {
+      alert("Please log in to vote.");
+      return;
+    }
+
+    const alreadyVoted = votedIdeas.has(ideaId);
+
+    if (alreadyVoted) {
+      const { error } = await supabase
+        .from("votes")
+        .delete()
+        .eq("idea_id", ideaId)
+        .eq("user_id", user.id);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+    } else {
+      const { error } = await supabase
+        .from("votes")
+        .insert({
+          idea_id: ideaId,
+          user_id: user.id,
+        });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+    }
+
+    setVotedIdeas((previous) => {
+      const next = new Set(previous);
+
+      if (alreadyVoted) {
+        next.delete(ideaId);
+      } else {
+        next.add(ideaId);
+      }
+
+      return next;
+    });
+
+    setIdeas((previous) =>
+      previous.map((idea) => {
+        if (idea.id !== ideaId) {
+          return idea;
+        }
+
+        const votes = [...(idea.votes || [])];
+
+        if (alreadyVoted) {
+          const index = votes.findIndex(
+            (vote) => vote.user_id === user.id
+          );
+
+          if (index !== -1) {
+            votes.splice(index, 1);
+          }
+        } else {
+          votes.push({
+            user_id: user.id,
+          });
+        }
+
+        return {
+          ...idea,
+          votes,
+        };
+      })
+    );
+  };
 
   return (
     <>
       <Navbar />
 
-      <main className="page-container">
-        <section className="page-header">
-          <div>
-            <span className="section-label">
-              COMMUNITY
-            </span>
+      <main className="container">
+        <div className="page-head">
+          <h1>Discover Ideas</h1>
 
-            <h1>Explore Ideas</h1>
+          <p>
+            Explore what students in your community
+            are thinking about.
+          </p>
+        </div>
 
-            <p>
-              Discover ideas shared by students and join
-              the conversation.
-            </p>
-          </div>
-        </section>
-
-        <section className="filter-panel">
-          <div className="search-wrapper">
-            <span>⌕</span>
+        <div className="toolbar">
+          <div className="search-box">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <line
+                x1="21"
+                y1="21"
+                x2="16.65"
+                y2="16.65"
+              />
+            </svg>
 
             <input
-              type="search"
+              type="text"
               placeholder="Search ideas..."
               value={search}
               onChange={(event) =>
@@ -114,65 +249,88 @@ export default function Ideas() {
           </div>
 
           <select
-            value={category}
+            className="sort-select"
+            value={sort}
             onChange={(event) =>
-              setCategory(event.target.value)
+              setSort(event.target.value)
             }
           >
-            {categories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
+            <option>Newest</option>
+            <option>Most Upvoted</option>
           </select>
-        </section>
 
-        {!loading && !error && (
-          <div className="results-info">
-            <span>
-              {filteredIdeas.length}{" "}
-              {filteredIdeas.length === 1
-                ? "idea"
-                : "ideas"}
-            </span>
-          </div>
-        )}
+          {user && (
+            <Link
+              to="/create"
+              className="btn btn-primary"
+            >
+              + Create Idea
+            </Link>
+          )}
+        </div>
+
+        <div
+          className="filter-chips"
+          style={{ marginBottom: "22px" }}
+        >
+          {categories.map((item) => (
+            <button
+              key={item}
+              type="button"
+              className={`chip ${
+                category === item ? "on" : ""
+              }`}
+              onClick={() => setCategory(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
 
         {loading ? (
           <LoadingSkeleton />
         ) : error ? (
           <div className="error-state">
-            <div className="state-icon">!</div>
+            <h3>Unable to load ideas.</h3>
 
-            <h2>Couldn't load ideas</h2>
-
-            <p>{error}</p>
+            <p>
+              Please check your connection and try
+              again.
+            </p>
 
             <button
-              className="primary-button"
+              className="btn btn-primary"
               onClick={fetchIdeas}
             >
               Try Again
             </button>
           </div>
         ) : filteredIdeas.length === 0 ? (
-          <div className="empty-state large">
-            <div className="state-icon">+</div>
-
-            <h2>No ideas found</h2>
+          <div className="empty-state">
+            <h3>Nothing here yet.</h3>
 
             <p>
-              Try a different search or category, or share
-              the first idea with your community.
+              Be the first student to share an idea.
             </p>
+
+            {user && (
+              <Link
+                to="/create"
+                className="btn btn-blue"
+              >
+                Create the First Idea →
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="ideas-grid">
+          <div className="idea-grid">
             {filteredIdeas.map((idea) => (
               <IdeaCard
                 key={idea.id}
                 idea={idea}
-                voteCount={votes[idea.id] || 0}
+                voteCount={idea.votes?.length || 0}
+                hasVoted={votedIdeas.has(idea.id)}
+                onVote={handleVote}
               />
             ))}
           </div>

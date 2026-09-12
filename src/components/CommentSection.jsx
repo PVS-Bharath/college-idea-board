@@ -1,40 +1,21 @@
-import { useState } from "react";
-import { supabase } from "../lib/supabase";
+import { useEffect, useState } from "react";
+
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export default function CommentSection({
   ideaId,
-  comments,
-  onCommentAdded,
 }) {
   const { user } = useAuth();
+
+  const [comments, setComments] = useState([]);
   const [content, setContent] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [posting, setPosting] = useState(false);
 
-  const handleComment = async (event) => {
-    event.preventDefault();
-    setError("");
-
-    if (!content.trim()) {
-      setError("Comment cannot be empty.");
-      return;
-    }
-
-    if (!user) {
-      setError("Please login to comment.");
-      return;
-    }
-
-    setSubmitting(true);
-
-    const { data, error: insertError } = await supabase
+  const fetchComments = async () => {
+    const { data, error } = await supabase
       .from("comments")
-      .insert({
-        idea_id: ideaId,
-        user_id: user.id,
-        content: content.trim(),
-      })
       .select(`
         *,
         profiles (
@@ -42,67 +23,190 @@ export default function CommentSection({
           username
         )
       `)
-      .single();
+      .eq("idea_id", ideaId)
+      .order("created_at", {
+        ascending: true,
+      });
 
-    setSubmitting(false);
+    if (!error) {
+      setComments(data || []);
+    }
 
-    if (insertError) {
-      setError(insertError.message);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchComments();
+  }, [ideaId]);
+
+  const postComment = async () => {
+    if (!user) {
+      alert("Please log in to comment.");
+      return;
+    }
+
+    if (!content.trim()) {
+      return;
+    }
+
+    if (content.trim().length < 2) {
+      alert("Comment is too short.");
+      return;
+    }
+
+    setPosting(true);
+
+    const { error } = await supabase
+      .from("comments")
+      .insert({
+        idea_id: ideaId,
+        user_id: user.id,
+        content: content.trim(),
+      });
+
+    setPosting(false);
+
+    if (error) {
+      alert(error.message);
       return;
     }
 
     setContent("");
-    onCommentAdded(data);
+
+    await fetchComments();
   };
 
+  const deleteComment = async (commentId) => {
+    const confirmed = window.confirm(
+      "Delete this comment?"
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId)
+      .eq("user_id", user.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setComments((previous) =>
+      previous.filter(
+        (comment) => comment.id !== commentId
+      )
+    );
+  };
+
+  if (loading) {
+    return <p className="idea-meta">Loading discussion...</p>;
+  }
+
   return (
-    <section className="comments-section">
-      <h2>Discussion</h2>
+    <div className="discussion">
+      <h3>Discussion</h3>
 
       {user && (
-        <form onSubmit={handleComment} className="comment-form">
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Share your thoughts..."
-            rows={3}
-            maxLength={500}
-          />
+        <div className="comment-box">
+          <div className="avatar">
+            {(
+              user.user_metadata?.full_name ||
+              user.email ||
+              "Y"
+            )
+              .charAt(0)
+              .toUpperCase()}
+          </div>
 
-          <button className="primary-button" disabled={submitting}>
-            {submitting ? "Posting..." : "Post Comment"}
-          </button>
-        </form>
+          <div className="comment-input-wrap">
+            <textarea
+              placeholder="Share your thoughts..."
+              value={content}
+              onChange={(event) =>
+                setContent(event.target.value)
+              }
+            />
+
+            <div className="comment-actions">
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={postComment}
+                disabled={posting}
+              >
+                {posting
+                  ? "Posting..."
+                  : "Post Comment"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {error && <div className="error-message">{error}</div>}
+      {comments.length === 0 ? (
+        <p className="idea-meta">
+          No comments yet. Start the conversation.
+        </p>
+      ) : (
+        comments.map((comment) => {
+          const name =
+            comment.profiles?.full_name ||
+            comment.profiles?.username ||
+            "Student";
 
-      <div className="comments-list">
-        {comments.length === 0 ? (
-          <div className="empty-state">
-            <p>No comments yet.</p>
-            <span>Be the first to start the discussion.</span>
-          </div>
-        ) : (
-          comments.map((comment) => (
-            <div className="comment" key={comment.id}>
-              <div className="comment-header">
-                <strong>
-                  {comment.profiles?.full_name ||
-                    comment.profiles?.username ||
-                    "Student"}
-                </strong>
+          const isOwner =
+            comment.user_id === user?.id;
 
-                <span>
-                  {new Date(comment.created_at).toLocaleDateString()}
-                </span>
+          return (
+            <div
+              className="comment-item"
+              key={comment.id}
+            >
+              <div className="avatar">
+                {name
+                  .charAt(0)
+                  .toUpperCase()}
               </div>
 
-              <p>{comment.content}</p>
+              <div className="comment-content">
+                <div className="comment-head">
+                  <span className="comment-name">
+                    {name}
+                  </span>
+
+                  <span className="comment-time">
+                    {new Date(
+                      comment.created_at
+                    ).toLocaleString()}
+                  </span>
+                </div>
+
+                <p className="comment-text">
+                  {comment.content}
+                </p>
+
+                {isOwner && (
+                  <div className="comment-owner-actions">
+                    <button
+                      onClick={() =>
+                        deleteComment(comment.id)
+                      }
+                      style={{
+                        color:
+                          "var(--danger)",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          ))
-        )}
-      </div>
-    </section>
+          );
+        })
+      )}
+    </div>
   );
 }

@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
 import Navbar from "../components/Navbar";
 import CommentSection from "../components/CommentSection";
-import IdeaForm from "../components/IdeaForm";
-import LoadingSkeleton from "../components/LoadingSkeleton";
 
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+
+const categoryVariables = {
+  Technology: "var(--cat-technology)",
+  Campus: "var(--cat-campus)",
+  Education: "var(--cat-education)",
+  Events: "var(--cat-events)",
+  Environment: "var(--cat-environment)",
+  Other: "var(--cat-other)",
+};
 
 export default function IdeaDetails() {
   const { id } = useParams();
@@ -15,23 +26,15 @@ export default function IdeaDetails() {
   const navigate = useNavigate();
 
   const [idea, setIdea] = useState(null);
-  const [comments, setComments] = useState([]);
-  const [voteCount, setVoteCount] = useState(0);
-  const [hasVoted, setHasVoted] = useState(false);
-
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [error, setError] = useState("");
+  const [voted, setVoted] = useState(false);
 
-  useEffect(() => {
-    fetchIdea();
-  }, [id, user]);
-
-  const fetchIdea = async () => {
+  const loadIdea = async () => {
     setLoading(true);
     setError("");
 
-    const { data, error: ideaError } = await supabase
+    const { data, error } = await supabase
       .from("ideas")
       .select(`
         *,
@@ -47,143 +50,107 @@ export default function IdeaDetails() {
       .eq("id", id)
       .single();
 
-    if (ideaError) {
-      setError(ideaError.message);
-      setLoading(false);
-      return;
-    }
-
-    const { data: commentsData, error: commentsError } =
-      await supabase
-        .from("comments")
-        .select(`
-          *,
-          profiles (
-            full_name,
-            username
-          )
-        `)
-        .eq("idea_id", id)
-        .order("created_at", { ascending: true });
-
-    if (commentsError) {
-      setError(commentsError.message);
+    if (error) {
+      console.error(error);
+      setError(error.message);
       setLoading(false);
       return;
     }
 
     setIdea(data);
-    setVoteCount(data.votes?.length || 0);
 
-    setHasVoted(
-      user
-        ? data.votes?.some(
-            (vote) => vote.user_id === user.id
-          )
-        : false
-    );
+    if (user) {
+      setVoted(
+        data.votes?.some(
+          (vote) => vote.user_id === user.id
+        ) || false
+      );
+    }
 
-    setComments(commentsData || []);
     setLoading(false);
   };
 
+  useEffect(() => {
+    loadIdea();
+  }, [id, user]);
+
   const handleVote = async () => {
     if (!user) {
-      navigate("/login");
+      alert("Please log in to vote.");
       return;
     }
 
-    setError("");
-
-    if (hasVoted) {
-      const { error: deleteError } = await supabase
+    if (voted) {
+      const { error } = await supabase
         .from("votes")
         .delete()
         .eq("idea_id", id)
         .eq("user_id", user.id);
 
-      if (deleteError) {
-        setError(deleteError.message);
+      if (error) {
+        alert(error.message);
         return;
       }
 
-      setVoteCount((count) => Math.max(0, count - 1));
-      setHasVoted(false);
-    } else {
-      const { error: insertError } = await supabase
-        .from("votes")
-        .insert({
-          idea_id: id,
-          user_id: user.id,
-        });
+      setVoted(false);
 
-      if (insertError) {
-        setError(insertError.message);
-        return;
-      }
+      setIdea((previous) => ({
+        ...previous,
+        votes: previous.votes.filter(
+          (vote) =>
+            vote.user_id !== user.id
+        ),
+      }));
 
-      setVoteCount((count) => count + 1);
-      setHasVoted(true);
+      return;
     }
+
+    const { data, error } = await supabase
+      .from("votes")
+      .insert({
+        idea_id: id,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setVoted(true);
+
+    setIdea((previous) => ({
+      ...previous,
+      votes: [
+        ...(previous.votes || []),
+        data,
+      ],
+    }));
   };
 
   const handleDelete = async () => {
     if (!user) return;
 
     const confirmed = window.confirm(
-      "Are you sure you want to delete this idea?"
+      "Delete this idea? This cannot be undone."
     );
 
     if (!confirmed) return;
 
-    const { error: deleteError } = await supabase
+    const { error } = await supabase
       .from("ideas")
       .delete()
       .eq("id", id)
       .eq("user_id", user.id);
 
-    if (deleteError) {
-      setError(deleteError.message);
+    if (error) {
+      alert(error.message);
       return;
     }
 
-    navigate("/ideas");
-  };
-
-  const handleUpdate = async (updatedIdea) => {
-    if (!user) {
-      throw new Error("You must be logged in.");
-    }
-
-    const { data, error: updateError } = await supabase
-      .from("ideas")
-      .update({
-        title: updatedIdea.title,
-        description: updatedIdea.description,
-        category: updatedIdea.category,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select(`
-        *,
-        profiles (
-          full_name,
-          username
-        )
-      `)
-      .single();
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    setIdea(data);
-    setEditing(false);
-  };
-
-  const handleCommentAdded = (comment) => {
-    setComments((current) => [...current, comment]);
+    navigate("/profile");
   };
 
   if (loading) {
@@ -191,137 +158,201 @@ export default function IdeaDetails() {
       <>
         <Navbar />
 
-        <main className="page-container narrow">
-          <LoadingSkeleton count={1} />
-        </main>
+        <div className="app-loading">
+          <div className="spinner"></div>
+          <p>Loading idea...</p>
+        </div>
       </>
     );
   }
 
-  if (error || !idea) {
+  if (error) {
     return (
       <>
         <Navbar />
 
-        <main className="page-container narrow">
-          <div className="error-state">
-            <h2>Unable to load this idea</h2>
+        <main className="container">
+          <div className="detail-wrap">
+            <div className="error-state">
+              <h3>
+                Unable to load this idea.
+              </h3>
 
-            <p>{error || "Idea not found."}</p>
+              <p>{error}</p>
 
-            <Link to="/ideas" className="primary-button">
-              Back to Ideas
-            </Link>
+              <Link
+                to="/ideas"
+                className="btn btn-primary"
+              >
+                Back to Ideas
+              </Link>
+            </div>
           </div>
         </main>
       </>
     );
   }
 
-  if (editing) {
-    return (
-      <>
-        <Navbar />
+  if (!idea) return null;
 
-        <main className="page-container narrow">
-          <div className="page-header">
-            <span className="hero-label">EDIT IDEA</span>
+  const author =
+    idea.profiles?.full_name ||
+    idea.profiles?.username ||
+    "Student";
 
-            <h1>Update your idea</h1>
-          </div>
+  const isOwner =
+    user?.id === idea.user_id;
 
-          <IdeaForm
-            initialData={idea}
-            onSubmit={handleUpdate}
-          />
-
-          <button
-            type="button"
-            className="secondary-button cancel-button"
-            onClick={() => setEditing(false)}
-          >
-            Cancel
-          </button>
-        </main>
-      </>
-    );
-  }
-
-  const isOwner = user?.id === idea.user_id;
+  const categoryColor =
+    categoryVariables[idea.category] ||
+    "var(--blue)";
 
   return (
     <>
       <Navbar />
 
-      <main className="page-container narrow">
-        <Link to="/ideas" className="back-link">
-          ← Back to Ideas
-        </Link>
+      <main className="container">
+        <div className="detail-wrap">
 
-        <article className="idea-detail">
-          <div className="idea-card-top">
-            <span className="category-badge">
-              {idea.category}
-            </span>
+          {/* BACK */}
 
-            <span>
-              {new Date(idea.created_at).toLocaleDateString()}
-            </span>
-          </div>
-
-          <h1>{idea.title}</h1>
-
-          <div className="author">
-            <strong>
-              {idea.profiles?.full_name ||
-                idea.profiles?.username ||
-                "Student"}
-            </strong>
-          </div>
-
-          <p className="idea-description">
-            {idea.description}
-          </p>
-
-          <div className="idea-actions">
-            <button
-              type="button"
-              className={`vote-button ${
-                hasVoted ? "voted" : ""
-              }`}
-              onClick={handleVote}
+          <Link
+            to="/ideas"
+            className="back-link"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              ▲ {voteCount}{" "}
-              {voteCount === 1 ? "Vote" : "Votes"}
-            </button>
+              <line
+                x1="19"
+                y1="12"
+                x2="5"
+                y2="12"
+              />
 
-            {isOwner && (
-              <>
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => setEditing(true)}
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+
+            Back to Ideas
+          </Link>
+
+          {/* IDEA */}
+
+          <article
+            className="detail-card"
+            style={{
+              "--cat": categoryColor,
+            }}
+          >
+            {/* CATEGORY */}
+
+            <span className="badge">
+              {idea.category?.toUpperCase()}
+            </span>
+
+            {/* TITLE */}
+
+            <h1 className="detail-title">
+              {idea.title}
+            </h1>
+
+            {/* META */}
+
+            <div className="detail-meta-row">
+              <span>
+                Posted by {author}
+              </span>
+
+              <span>·</span>
+
+              <span>
+                {new Date(
+                  idea.created_at
+                ).toLocaleString()}
+              </span>
+            </div>
+
+            {/* DESCRIPTION */}
+
+            <p className="detail-body">
+              {idea.description}
+            </p>
+
+            {/* ACTIONS */}
+
+            <div className="detail-actions">
+
+              {/* VOTE */}
+
+              <button
+                type="button"
+                className={`vote-btn ${
+                  voted ? "voted" : ""
+                }`}
+                onClick={handleVote}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  Edit
-                </button>
+                  <line
+                    x1="12"
+                    y1="19"
+                    x2="12"
+                    y2="5"
+                  />
 
-                <button
-                  type="button"
-                  className="danger-button"
-                  onClick={handleDelete}
-                >
-                  Delete
-                </button>
-              </>
-            )}
-          </div>
-        </article>
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
 
-        <CommentSection
-          ideaId={id}
-          comments={comments}
-          onCommentAdded={handleCommentAdded}
-        />
+                <span>
+                  {voted
+                    ? "Voted"
+                    : "Upvote"}{" "}
+                  · {idea.votes?.length || 0}
+                </span>
+              </button>
+
+              {/* OWNER ACTIONS */}
+
+              {isOwner && (
+                <div className="owner-actions">
+
+                  <Link
+                    to={`/edit/${idea.id}`}
+                    className="btn btn-secondary btn-sm"
+                  >
+                    Edit Idea
+                  </Link>
+
+                  <button
+                    type="button"
+                    className="btn btn-danger-outline btn-sm"
+                    onClick={handleDelete}
+                  >
+                    Delete Idea
+                  </button>
+
+                </div>
+              )}
+            </div>
+
+            {/* DISCUSSION */}
+
+            <CommentSection
+              ideaId={idea.id}
+            />
+          </article>
+        </div>
       </main>
     </>
   );

@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
 import { supabase } from "../lib/supabase";
 
 const AuthContext = createContext(null);
@@ -10,26 +16,37 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let mounted = true;
 
-    const getSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+    const loadSession = async () => {
+      const {
+        data,
+        error,
+      } = await supabase.auth.getSession();
 
       if (mounted) {
         if (error) {
-          console.error("Session error:", error);
+          console.error(error);
         }
 
-        setUser(data?.session?.user ?? null);
+        setUser(
+          data?.session?.user || null
+        );
+
         setLoading(false);
       }
     };
 
-    getSession();
+    loadSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    } =
+      supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setUser(
+            session?.user || null
+          );
+        }
+      );
 
     return () => {
       mounted = false;
@@ -37,7 +54,12 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const signUp = async ({ email, password, fullName, username }) => {
+  const signUp = async ({
+    email,
+    password,
+    fullName,
+    username,
+  }) => {
     return await supabase.auth.signUp({
       email,
       password,
@@ -50,7 +72,10 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const signIn = async ({ email, password }) => {
+  const signIn = async ({
+    email,
+    password,
+  }) => {
     return await supabase.auth.signInWithPassword({
       email,
       password,

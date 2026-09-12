@@ -1,23 +1,28 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 
 export default function Signup() {
-  const { user, signUp } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [fullName, setFullName] =
+    useState("");
+
+  const [username, setUsername] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  if (user) {
-    return <Navigate to="/ideas" replace />;
-  }
+  const [loading, setLoading] =
+    useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -30,20 +35,8 @@ export default function Signup() {
       !email.trim() ||
       !password
     ) {
-      setError("Please fill in all fields.");
-      return;
-    }
-
-    if (fullName.trim().length < 2) {
       setError(
-        "Full name must contain at least 2 characters."
-      );
-      return;
-    }
-
-    if (username.trim().length < 3) {
-      setError(
-        "Username must contain at least 3 characters."
+        "Please complete all fields."
       );
       return;
     }
@@ -57,7 +50,7 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { data, error: signupError } = await signUp({
+    const { error } = await signUp({
       email: email.trim(),
       password,
       fullName: fullName.trim(),
@@ -66,123 +59,116 @@ export default function Signup() {
 
     setLoading(false);
 
-    if (signupError) {
-      setError(signupError.message);
+    if (error) {
+      setError(error.message);
       return;
     }
 
-    if (data?.session) {
-      navigate("/ideas");
-    } else {
-      navigate("/login");
-    }
+    navigate("/ideas");
   };
 
   return (
     <>
       <Navbar />
 
-      <main className="auth-page">
+      <main className="auth-wrap">
         <div className="auth-card">
-          <div className="auth-heading">
-            <span className="section-label">
-              JOIN THE COMMUNITY
-            </span>
+          <h1>Join IdeaBoard</h1>
 
-            <h1>Create account</h1>
+          <p className="form-sub">
+            Create your account and start sharing
+            ideas.
+          </p>
 
-            <p>
-              Create your account and start sharing ideas.
-            </p>
-          </div>
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="fullName">
-                Full name
-              </label>
+            <div className="field">
+              <label>Full Name</label>
 
               <input
-                id="fullName"
                 type="text"
-                placeholder="Your name"
+                placeholder="Your full name"
                 value={fullName}
                 onChange={(event) =>
-                  setFullName(event.target.value)
+                  setFullName(
+                    event.target.value
+                  )
                 }
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="username">
-                Username
-              </label>
+            <div className="field">
+              <label>Username</label>
 
               <input
-                id="username"
                 type="text"
-                placeholder="yourusername"
+                placeholder="Choose a username"
                 value={username}
                 onChange={(event) =>
-                  setUsername(event.target.value)
+                  setUsername(
+                    event.target.value
+                  )
                 }
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="signup-email">
-                Email address
-              </label>
+            <div className="field">
+              <label>Email</label>
 
               <input
-                id="signup-email"
                 type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
+                placeholder="you@college.edu"
                 value={email}
                 onChange={(event) =>
-                  setEmail(event.target.value)
+                  setEmail(
+                    event.target.value
+                  )
                 }
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="signup-password">
-                Password
-              </label>
+            <div
+              className="field"
+              style={{ marginBottom: "8px" }}
+            >
+              <label>Password</label>
 
               <input
-                id="signup-password"
                 type="password"
-                autoComplete="new-password"
-                placeholder="At least 6 characters"
+                placeholder="••••••••"
                 value={password}
                 onChange={(event) =>
-                  setPassword(event.target.value)
+                  setPassword(
+                    event.target.value
+                  )
                 }
               />
             </div>
 
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-
             <button
-              type="submit"
-              className="primary-button full-width"
+              className="btn btn-primary btn-full"
+              style={{
+                marginTop: "14px",
+                padding: "12px",
+              }}
               disabled={loading}
             >
               {loading
-                ? "Creating account..."
+                ? "Creating..."
                 : "Create Account"}
             </button>
           </form>
 
-          <p className="auth-footer">
+          <p className="auth-switch">
             Already have an account?{" "}
-            <Link to="/login">Login</Link>
+            <Link to="/login">
+              Log In
+            </Link>
           </p>
         </div>
       </main>

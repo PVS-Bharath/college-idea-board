@@ -1,76 +1,88 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActive = (path) => location.pathname === path;
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/login");
   };
 
   return (
-    <header className="navbar">
-      <div className="nav-container">
-        <Link to="/" className="logo">
-          <span className="logo-mark">I</span>
+    <div className="nav-wrap">
+      <div className="nav">
+        <Link to="/" className="brand">
+          <span className="brand-mark">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            >
+              <path d="M12 3v14" />
+              <path d="M6 21h12" />
+            </svg>
+          </span>
+
           IdeaBoard
         </Link>
 
-        <nav className="nav-links">
-          <NavLink
+        <div className="nav-links">
+          <Link
             to="/ideas"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
+            className={`nav-link ${
+              isActive("/ideas") ? "active" : ""
+            }`}
           >
             Ideas
-          </NavLink>
+          </Link>
 
           {user ? (
             <>
-              <NavLink
+              <Link
                 to="/create"
-                className={({ isActive }) =>
-                  isActive ? "nav-link active" : "nav-link"
-                }
+                className="nav-link"
               >
-                Create
-              </NavLink>
+                Create Idea
+              </Link>
 
-              <NavLink
+              <Link
                 to="/profile"
-                className={({ isActive }) =>
-                  isActive ? "nav-link active" : "nav-link"
-                }
+                className="nav-link"
               >
                 Profile
-              </NavLink>
+              </Link>
 
               <button
+                className="btn btn-secondary btn-sm"
                 onClick={handleLogout}
-                className="nav-logout"
               >
-                Logout
+                Log Out
               </button>
             </>
           ) : (
             <>
-              <NavLink
+              <Link
                 to="/login"
                 className="nav-link"
               >
-                Login
-              </NavLink>
+                Log In
+              </Link>
 
-              <Link to="/signup" className="nav-signup">
-                Get Started
+              <Link
+                to="/signup"
+                className="btn btn-primary btn-sm"
+              >
+                Sign Up
               </Link>
             </>
           )}
-        </nav>
+        </div>
       </div>
-    </header>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const categories = [
   "Technology",
@@ -14,17 +14,29 @@ export default function IdeaForm({
   onSubmit,
   submitting = false,
 }) {
-  const [title, setTitle] = useState(initialData?.title || "");
-  const [description, setDescription] = useState(
-    initialData?.description || ""
-  );
-  const [category, setCategory] = useState(
-    initialData?.category || "Technology"
-  );
+  const [title, setTitle] = useState("");
+  const [description, setDescription] =
+    useState("");
+  const [category, setCategory] =
+    useState("Technology");
+
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || "");
+      setDescription(
+        initialData.description || ""
+      );
+      setCategory(
+        initialData.category || "Technology"
+      );
+    }
+  }, [initialData]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     setError("");
 
     if (!title.trim()) {
@@ -33,7 +45,9 @@ export default function IdeaForm({
     }
 
     if (title.trim().length < 5) {
-      setError("Title must contain at least 5 characters.");
+      setError(
+        "Title must contain at least 5 characters."
+      );
       return;
     }
 
@@ -43,7 +57,9 @@ export default function IdeaForm({
     }
 
     if (description.trim().length < 20) {
-      setError("Description must contain at least 20 characters.");
+      setError(
+        "Description must contain at least 20 characters."
+      );
       return;
     }
 
@@ -54,69 +70,115 @@ export default function IdeaForm({
         category,
       });
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      setError(
+        err.message || "Something went wrong."
+      );
     }
   };
 
   return (
-    <form className="form-card" onSubmit={handleSubmit}>
-      <div className="form-group">
-        <label htmlFor="title">Idea title</label>
+    <div className="form-card">
+      <h1 className="form-title">
+        {initialData
+          ? "Edit your idea"
+          : "Share your idea"}
+      </h1>
 
-        <input
-          id="title"
-          type="text"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="e.g. Smart campus navigation"
-          maxLength={100}
-        />
-      </div>
+      <p className="form-sub">
+        Give your idea a clear description so other
+        students can understand it.
+      </p>
 
-      <div className="form-group">
-        <label htmlFor="category">Category</label>
+      <form onSubmit={handleSubmit}>
+        <div className="field">
+          <label htmlFor="title">
+            Idea Title
+          </label>
 
-        <select
-          id="category"
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-        >
-          {categories.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </div>
+          <input
+            id="title"
+            type="text"
+            placeholder="e.g. Smart campus navigation"
+            value={title}
+            maxLength={100}
+            onChange={(event) =>
+              setTitle(event.target.value)
+            }
+          />
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="description">Description</label>
+        <div className="field">
+          <label htmlFor="category">
+            Category
+          </label>
 
-        <textarea
-          id="description"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Explain your idea..."
-          rows={7}
-          maxLength={2000}
-        />
+          <select
+            id="category"
+            value={category}
+            onChange={(event) =>
+              setCategory(event.target.value)
+            }
+          >
+            {categories.map((item) => (
+              <option key={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <small>{description.length}/2000</small>
-      </div>
+        <div className="field">
+          <label htmlFor="description">
+            Description
+          </label>
 
-      {error && <div className="error-message">{error}</div>}
+          <textarea
+            id="description"
+            placeholder="Explain your idea..."
+            value={description}
+            maxLength={2000}
+            onChange={(event) =>
+              setDescription(event.target.value)
+            }
+          />
 
-      <button
-        type="submit"
-        className="primary-button"
-        disabled={submitting}
-      >
-        {submitting
-          ? "Saving..."
-          : initialData
-          ? "Update Idea"
-          : "Publish Idea"}
-      </button>
-    </form>
+          <div className="field-foot">
+            <span>{description.length}</span>
+            <span>characters</span>
+          </div>
+        </div>
+
+        {error && (
+          <div className="field-error">
+            {error}
+          </div>
+        )}
+
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() =>
+              window.history.back()
+            }
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ flex: 1 }}
+            disabled={submitting}
+          >
+            {submitting
+              ? "Saving..."
+              : initialData
+              ? "Update Idea"
+              : "Publish Idea"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

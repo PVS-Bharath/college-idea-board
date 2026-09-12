@@ -1,183 +1,150 @@
 import { Link } from "react-router-dom";
-
-function Logo() {
-  return (
-    <Link to="/" className="landing-logo">
-      <span className="landing-logo-mark">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-        >
-          <path d="M12 3v14" />
-          <path d="M6 21h12" />
-        </svg>
-      </span>
-
-      <span>IdeaBoard</span>
-    </Link>
-  );
-}
-
-function IdeaNote({
-  className,
-  category,
-  title,
-  votes,
-  comments,
-}) {
-  return (
-    <div className={`idea-note ${className || ""}`}>
-      <span className="idea-note-edge"></span>
-
-      <span className="idea-note-pin"></span>
-
-      <div className="idea-note-category">
-        {category}
-      </div>
-
-      <div className="idea-note-title">
-        {title}
-      </div>
-
-      <div className="idea-note-footer">
-        <span>↑ {votes}</span>
-        <span>💬 {comments}</span>
-      </div>
-    </div>
-  );
-}
-
-function IdeaBoardPreview() {
-  return (
-    <div className="landing-board">
-      <IdeaNote
-        className="idea-note-campus"
-        category="CAMPUS"
-        title="Smart Campus Navigation"
-        votes="24"
-        comments="8"
-      />
-
-      <IdeaNote
-        className="idea-note-technology"
-        category="TECHNOLOGY"
-        title="Offline Class Notes App"
-        votes="31"
-        comments="11"
-      />
-
-      <IdeaNote
-        className="idea-note-education"
-        category="EDUCATION"
-        title="Free Textbook Exchange"
-        votes="19"
-        comments="6"
-      />
-
-      <IdeaNote
-        className="idea-note-events"
-        category="EVENTS"
-        title="Unified Events Calendar"
-        votes="22"
-        comments="9"
-      />
-    </div>
-  );
-}
+import Navbar from "../components/Navbar";
 
 export default function Home() {
   return (
-    <div className="landing-page">
-      {/* ================= NAVBAR ================= */}
-
-      <header className="landing-navbar">
-        <Logo />
-
-        <nav className="landing-nav-links">
-          <Link to="/ideas">Ideas</Link>
-
-          <Link to="/login">Log In</Link>
-
-          <Link
-            to="/signup"
-            className="landing-signup"
-          >
-            Sign Up
-          </Link>
-        </nav>
-      </header>
-
-      {/* ================= HERO ================= */}
+    <>
+      <Navbar />
 
       <main>
-        <section className="landing-hero">
-          <div className="landing-hero-inner">
-            <div className="landing-copy">
-              <div className="landing-kicker">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                >
-                  <path d="M12 2l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 13.6 6.9 17.2l1.9-5.8L4 7.8h6.1z" />
-                </svg>
+        {/* ================= HERO ================= */}
 
-                <span>Built for students</span>
+        <section className="hero-section">
+          <div className="container">
+            <div className="hero-grid">
+
+              <div>
+                <span className="eyebrow">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <path d="M12 2l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 13.6 6.9 17.2l1.9-5.8L4 7.8h6.1z" />
+                  </svg>
+
+                  Built for students
+                </span>
+
+                <h1 className="hero-title">
+                  Turn student ideas
+                  <span className="light">
+                    into real change.
+                  </span>
+                </h1>
+
+                <p className="hero-sub">
+                  A collaborative space where students can
+                  share ideas, start conversations, and vote
+                  for the changes they want to see on campus.
+                </p>
+
+                <div className="hero-actions">
+                  <Link
+                    to="/signup"
+                    className="btn btn-primary"
+                  >
+                    Share Your Idea →
+                  </Link>
+
+                  <Link
+                    to="/ideas"
+                    className="btn btn-secondary"
+                  >
+                    Explore Ideas
+                  </Link>
+                </div>
+
+                <p className="trust-line">
+                  Share ideas. Get feedback. Make an impact.
+                </p>
               </div>
 
-              <h1 className="landing-title">
-                Turn student ideas
-                <span>into real change.</span>
-              </h1>
+              {/* CORKBOARD */}
 
-              <p className="landing-description">
-                A collaborative space where students can share
-                ideas, start conversations, and vote for the
-                changes they want to see on campus.
-              </p>
+              <div className="board">
 
-              <div className="landing-cta-row">
-                <Link
-                  to="/signup"
-                  className="landing-primary-button"
-                >
-                  Share Your Idea
-                  <span>→</span>
-                </Link>
+                <div className="note n1">
+                  <span className="note-edge" />
 
-                <Link
-                  to="/ideas"
-                  className="landing-secondary-button"
-                >
-                  Explore Ideas
-                </Link>
+                  <div className="note-cat">
+                    CAMPUS
+                  </div>
+
+                  <div className="note-title">
+                    Smart Campus Navigation
+                  </div>
+
+                  <div className="note-foot">
+                    <span>↑ 24</span>
+                    <span>💬 8</span>
+                  </div>
+                </div>
+
+                <div className="note n2">
+                  <span className="note-edge" />
+
+                  <div className="note-cat">
+                    TECHNOLOGY
+                  </div>
+
+                  <div className="note-title">
+                    Offline Class Notes App
+                  </div>
+
+                  <div className="note-foot">
+                    <span>↑ 31</span>
+                    <span>💬 11</span>
+                  </div>
+                </div>
+
+                <div className="note n3">
+                  <span className="note-edge" />
+
+                  <div className="note-cat">
+                    EDUCATION
+                  </div>
+
+                  <div className="note-title">
+                    Free Textbook Exchange
+                  </div>
+
+                  <div className="note-foot">
+                    <span>↑ 19</span>
+                    <span>💬 6</span>
+                  </div>
+                </div>
+
+                <div className="note n4">
+                  <span className="note-edge" />
+
+                  <div className="note-cat">
+                    EVENTS
+                  </div>
+
+                  <div className="note-title">
+                    Unified Events Calendar
+                  </div>
+
+                  <div className="note-foot">
+                    <span>↑ 22</span>
+                    <span>💬 9</span>
+                  </div>
+                </div>
+
               </div>
-
-              <p className="landing-trust">
-                Share ideas. Get feedback. Make an impact.
-              </p>
             </div>
-
-            {/* ================= IDEA BOARD ================= */}
-
-            <IdeaBoardPreview />
           </div>
         </section>
 
         {/* ================= HOW IT WORKS ================= */}
 
-        <section className="landing-how">
-          <div className="landing-section-heading">
-            <span>HOW IT WORKS</span>
-
+        <section className="container section">
+          <div className="section-head">
             <h2>
-              Ideas grow when students
-              work together.
+              Ideas grow when students work together.
             </h2>
 
             <p>
@@ -186,14 +153,24 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="landing-steps">
-            <article>
-              <div className="landing-step-number">
+          <div className="steps-grid">
+
+            <div className="step-card">
+              <div className="step-num">
                 01
               </div>
 
-              <div className="landing-step-icon">
-                +
+              <div className="step-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 4v16" />
+                  <path d="M20 12H4" />
+                </svg>
               </div>
 
               <h3>Share</h3>
@@ -202,20 +179,20 @@ export default function Home() {
                 Post your idea with a title, category
                 and clear description.
               </p>
-            </article>
+            </div>
 
-            <article>
-              <div className="landing-step-number">
+            <div className="step-card">
+              <div className="step-num">
                 02
               </div>
 
-              <div className="landing-step-icon">
+              <div className="step-icon">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
@@ -227,30 +204,23 @@ export default function Home() {
                 Get feedback and continue the conversation
                 with other students.
               </p>
-            </article>
+            </div>
 
-            <article>
-              <div className="landing-step-number">
+            <div className="step-card">
+              <div className="step-num">
                 03
               </div>
 
-              <div className="landing-step-icon">
+              <div className="step-icon">
                 <svg
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
-                  <line
-                    x1="12"
-                    y1="19"
-                    x2="12"
-                    y2="5"
-                  />
-
-                  <polyline points="5 12 12 5 19 12" />
+                  <path d="M12 19V5" />
+                  <path d="M5 12l7-7 7 7" />
                 </svg>
               </div>
 
@@ -260,63 +230,61 @@ export default function Home() {
                 Upvote ideas you believe can make
                 a difference on campus.
               </p>
-            </article>
+            </div>
+
           </div>
         </section>
 
-        {/* ================= FINAL CTA ================= */}
+        {/* ================= CTA ================= */}
 
-        <section className="landing-final-cta">
-          <div className="landing-cta-copy">
-            <span>YOUR VOICE MATTERS</span>
-
-            <h2>
-              Have an idea
-              <span>worth sharing?</span>
-            </h2>
-
-            <p>
-              Start the conversation with your
-              college community.
-            </p>
-
-            <Link
-              to="/create"
-              className="landing-cta-button"
-            >
-              Create an Idea
-              <span>→</span>
-            </Link>
-
-            <small>
-              Free to join with your college email.
-            </small>
-          </div>
-
-          <div className="landing-cta-decoration">
+        <section className="cta-band">
+          <div className="cta-watermark">
             <svg
               viewBox="0 0 24 24"
               fill="none"
-              stroke="currentColor"
               strokeWidth="1"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z" />
+              <path d="M9 18h6" />
+              <path d="M10 21h4" />
+              <path d="M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z" />
             </svg>
+          </div>
+
+          <div className="cta-copy">
+            <h2>
+              Have an idea
+              <span className="light">
+                worth sharing?
+              </span>
+            </h2>
+
+            <p>
+              Start the conversation with your college
+              community.
+            </p>
+
+            <Link
+              to="/create"
+              className="btn btn-blue"
+            >
+              Create an Idea →
+            </Link>
+
+            <p className="cta-note">
+              Free to join with your college email.
+            </p>
           </div>
         </section>
 
-        {/* ================= FOOTER ================= */}
-
-        <footer className="landing-footer">
-          <span>© 2026 IdeaBoard</span>
-
-          <span>
-            Made for students, by students
-          </span>
-        </footer>
+        <div className="container">
+          <footer>
+            <span>© 2026 IdeaBoard</span>
+            <span>Made for students, by students</span>
+          </footer>
+        </div>
       </main>
-    </div>
+    </>
   );
 }

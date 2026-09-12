@@ -1,62 +1,75 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
-import IdeaCard from "../components/IdeaCard";
-import LoadingSkeleton from "../components/LoadingSkeleton";
+
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 
 export default function Profile() {
   const { user } = useAuth();
 
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] =
+    useState(null);
+
   const [ideas, setIdeas] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
+    if (!user) return;
+
+    const loadProfile = async () => {
+      const [
+        profileResult,
+        ideasResult,
+      ] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single(),
+
+        supabase
+          .from("ideas")
+          .select(`
+            *,
+            votes (
+              id
+            ),
+            comments (
+              id
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", {
+            ascending: false,
+          }),
+      ]);
+
+      setProfile(
+        profileResult.data || null
+      );
+
+      setIdeas(
+        ideasResult.data || []
+      );
+
+      setLoading(false);
+    };
+
+    loadProfile();
   }, [user]);
-
-  const fetchProfile = async () => {
-    setLoading(true);
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    const { data: ideasData } = await supabase
-      .from("ideas")
-      .select(`
-        *,
-        profiles (
-          full_name,
-          username
-        ),
-        votes (
-          id
-        )
-      `)
-      .eq("user_id", user.id)
-      .order("created_at", {
-        ascending: false,
-      });
-
-    setProfile(profileData);
-    setIdeas(ideasData || []);
-    setLoading(false);
-  };
 
   if (loading) {
     return (
       <>
         <Navbar />
 
-        <main className="page-container">
-          <LoadingSkeleton />
-        </main>
+        <div className="app-loading">
+          <div className="spinner" />
+          <p>Loading profile...</p>
+        </div>
       </>
     );
   }
@@ -70,65 +83,92 @@ export default function Profile() {
     <>
       <Navbar />
 
-      <main className="page-container">
-        <section className="profile-header">
+      <main className="container">
+        <div className="profile-header">
           <div className="profile-avatar">
-            {displayName.charAt(0).toUpperCase()}
+            {displayName
+              .charAt(0)
+              .toUpperCase()}
           </div>
 
-          <div className="profile-info">
-            <span className="section-label">
-              PROFILE
-            </span>
+          <div>
+            <h1 className="profile-name">
+              {displayName}
+            </h1>
 
-            <h1>{displayName}</h1>
-
-            <p>
-              @{profile?.username || "student"}
+            <p className="profile-sub">
+              @{profile?.username || "student"} ·{" "}
+              {user?.email}
             </p>
-
-            <span className="profile-stat">
-              {ideas.length}{" "}
-              {ideas.length === 1
-                ? "idea"
-                : "ideas"}{" "}
-              shared
-            </span>
           </div>
-        </section>
+        </div>
 
-        <section>
-          <div className="section-heading">
-            <span className="section-label">
-              YOUR CONTRIBUTIONS
-            </span>
-
-            <h2>Your Ideas</h2>
-          </div>
+        <div className="profile-section">
+          <h2>My Ideas</h2>
 
           {ideas.length === 0 ? (
-            <div className="empty-state large">
-              <div className="state-icon">+</div>
-
-              <h2>No ideas yet</h2>
+            <div className="empty-state">
+              <h3>No ideas yet.</h3>
 
               <p>
-                Ideas you share with the community will
-                appear here.
+                Share your first idea with the
+                community.
               </p>
+
+              <Link
+                to="/create"
+                className="btn btn-blue"
+              >
+                Create an Idea →
+              </Link>
             </div>
           ) : (
-            <div className="ideas-grid">
-              {ideas.map((idea) => (
-                <IdeaCard
-                  key={idea.id}
-                  idea={idea}
-                  voteCount={idea.votes?.length || 0}
-                />
-              ))}
-            </div>
+            ideas.map((idea) => (
+              <div
+                className="my-idea-row"
+                key={idea.id}
+              >
+                <div className="my-idea-info">
+                  <h4>{idea.title}</h4>
+
+                  <p className="idea-meta">
+                    {idea.category} ·{" "}
+                    {idea.votes?.length || 0}{" "}
+                    votes ·{" "}
+                    {idea.comments?.length || 0}{" "}
+                    comments ·{" "}
+                    {new Date(
+                      idea.created_at
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div className="my-idea-actions">
+                    <Link
+                        to={`/ideas/${idea.id}`}
+                        className="btn btn-secondary btn-sm"
+                    >
+                        View
+                    </Link>
+
+                    <Link
+                        to={`/edit/${idea.id}`}
+                        className="btn btn-secondary btn-sm"
+                    >
+                        Edit
+                    </Link>
+
+                    <button
+                        className="btn btn-danger-outline btn-sm"
+                        onClick={() => handleDelete(idea.id)}
+                    >
+                        Delete
+                    </button>
+                </div>
+              </div>
+            ))
           )}
-        </section>
+        </div>
       </main>
     </>
   );

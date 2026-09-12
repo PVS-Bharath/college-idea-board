@@ -1,27 +1,27 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const { user, signIn } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] =
+    useState("");
 
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  if (user) {
-    return <Navigate to="/ideas" replace />;
-  }
+  const [loading, setLoading] =
+    useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     setError("");
 
-    if (!email.trim() || !password) {
+    if (!email || !password) {
       setError(
         "Please enter your email and password."
       );
@@ -30,15 +30,15 @@ export default function Login() {
 
     setLoading(true);
 
-    const { error: loginError } = await signIn({
-      email: email.trim(),
+    const { error } = await signIn({
+      email,
       password,
     });
 
     setLoading(false);
 
-    if (loginError) {
-      setError(loginError.message);
+    if (error) {
+      setError(error.message);
       return;
     }
 
@@ -49,32 +49,28 @@ export default function Login() {
     <>
       <Navbar />
 
-      <main className="auth-page">
+      <main className="auth-wrap">
         <div className="auth-card">
-          <div className="auth-heading">
-            <span className="section-label">
-              WELCOME BACK
-            </span>
+          <h1>Welcome back</h1>
 
-            <h1>Login</h1>
+          <p className="form-sub">
+            Continue sharing ideas with your
+            community.
+          </p>
 
-            <p>
-              Sign in to share and discuss ideas with your
-              community.
-            </p>
-          </div>
+          {error && (
+            <div className="auth-error">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="email">
-                Email address
-              </label>
+            <div className="field">
+              <label>Email</label>
 
               <input
-                id="email"
                 type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
+                placeholder="you@college.edu"
                 value={email}
                 onChange={(event) =>
                   setEmail(event.target.value)
@@ -82,41 +78,43 @@ export default function Login() {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="password">
-                Password
-              </label>
+            <div
+              className="field"
+              style={{ marginBottom: "8px" }}
+            >
+              <label>Password</label>
 
               <input
-                id="password"
                 type="password"
-                autoComplete="current-password"
-                placeholder="Your password"
+                placeholder="••••••••"
                 value={password}
                 onChange={(event) =>
-                  setPassword(event.target.value)
+                  setPassword(
+                    event.target.value
+                  )
                 }
               />
             </div>
 
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
-
             <button
-              type="submit"
-              className="primary-button full-width"
+              className="btn btn-primary btn-full"
+              style={{
+                marginTop: "14px",
+                padding: "12px",
+              }}
               disabled={loading}
             >
-              {loading ? "Signing in..." : "Login"}
+              {loading
+                ? "Logging in..."
+                : "Log In"}
             </button>
           </form>
 
-          <p className="auth-footer">
+          <p className="auth-switch">
             Don't have an account?{" "}
-            <Link to="/signup">Create one</Link>
+            <Link to="/signup">
+              Sign Up
+            </Link>
           </p>
         </div>
       </main>
